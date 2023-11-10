@@ -3,8 +3,8 @@ import socketio from 'socket.io-client'
 import GameScene from './scenes/game-scene.js'
 
 const gameConfig = {
-  width: 600,
-  height: 480,
+  width: 1920,
+  height: 1080,
   scene: new GameScene(new socketio())
 }
 

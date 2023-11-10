@@ -1,3 +1,4 @@
+import { CARDS_TO_DEAL } from './game-rules.js'
 import Deck from './deck.js'
 
 class Player {
@@ -11,13 +12,17 @@ export default class GameState {
   constructor (id) {
     this.id = id
     this.deck = new Deck()
+    this.deck.shuffle()
     this.players = []
   }
 
   addPlayer () { 
     // use player count as the id for a new player
     const player = new Player(this.players.length)
-    this.players.push(new Player(this.players.length))
+    for (let i = 0; i < CARDS_TO_DEAL; i++) {
+      player.hand.push(this.deck.deal())
+    }
+    this.players.push(player)
     return this.getPlayerState(player.id)
   }
 

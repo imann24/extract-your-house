@@ -20,15 +20,21 @@ export default class GameScene extends Phaser.Scene {
 
   startHandler (state) {
     this.deck = Deck.fromExisting(state.deck)
+    this.hand = state.hand
+    console.log(state)
   }
 
   create () {
-    console.log(this.deck)
     this.deckSprites = []
-    let xPos = 25
+    let deckXPos = 25
     while (!this.deck.empty()) {
-      const card = new Card(this, xPos += 10, 300, this.deck.deal())
+      const card = new Card(this, deckXPos += 10, 300, this.deck.deal())
       this.deckSprites.push(card)
+    }
+    this.handSprites = []
+    let handXPos = 250
+    for (var i = 0; i < this.hand.length; i++) {
+      const card = new Card(this, handXPos += 50, 500, this.hand[i])
     }
   }
 }
