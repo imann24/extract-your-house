@@ -44,6 +44,14 @@ export default class Deck {
     return this.cards.pop()
   }
 
+  count () {
+    return this.cards.length
+  }
+
+  get (i) {
+    return this.cards[i]
+  }
+
   empty () {
     return !this.cards.length
   }

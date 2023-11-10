@@ -26,16 +26,20 @@ app.get('/', (req, res) => {
 });
 
 const games = []
-// start with just a single game state with:
+// start with just a single game instance:
 games[0] = new GameState(0)
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
+  if (!games[0].canAddPlayer()) {
+    socket.emit('game-full')
+  }
   const player = games[0].addPlayer()
+
   console.log(`Player ${player.id} connected`)
   socket.emit('player', player)
 
-  socket.broadcast.emit('update', games[0].getPlayerState(player.id))
+  socket.broadcast.emit('update', games[0].getState())
 
   // Handle disconnection
   socket.on('disconnect', () => {

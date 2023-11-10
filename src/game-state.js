@@ -1,4 +1,4 @@
-import { CARDS_TO_DEAL } from './game-rules.js'
+import { PLAYER_MAX, CARDS_TO_DEAL } from './game-rules.js'
 import Deck from './deck.js'
 
 class Player {
@@ -14,6 +14,10 @@ export default class GameState {
     this.deck = new Deck()
     this.deck.shuffle()
     this.players = []
+  }
+
+  canAddPlayer () {
+    return this.players.length < PLAYER_MAX
   }
 
   addPlayer () { 
@@ -32,6 +36,13 @@ export default class GameState {
       deck: this.deck,
       hand: this.players[playerId].hand,
       collectionPile: this.players[playerId].collectionPile,
+    }
+  }
+
+  getState () {
+    return {
+      deck: this.deck,
+      players: this.players,
     }
   }
 }

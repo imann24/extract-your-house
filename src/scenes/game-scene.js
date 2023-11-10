@@ -6,12 +6,14 @@ export default class GameScene extends Phaser.Scene {
   constructor(socket) {
     super({ key: 'game' })
     this.socket = socket
+    this.socket.on('game-full', () => alert('lobby is full'))
     this.socket.on('player', state => {
-      this.stateHandler(state)
+      this.playerHandler(state)
     })
     this.socket.on('update', state => {
       this.updateHandler(state)
     })
+    this.deckSprites = []
   }
 
   preload () {
@@ -21,7 +23,7 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  stateHandler (state) {
+  playerHandler (state) {
     this.id = state.id
     this.deck = Deck.fromExisting(state.deck)
     this.hand = state.hand
@@ -30,20 +32,24 @@ export default class GameScene extends Phaser.Scene {
   }
 
   updateHandler (state) {
-    this.stateHandler(state)
+    this.deck = Deck.fromExisting(state.deck)
+    this.hand = state.players[this.id].hand
+    this.hand = state.players[this.id].collectionPile
   }
 
   update () {
-    console.log(this.deck.length)
+    for (let i = 0; i < this.deckSprites.length; i++) {
+      this.deckSprites[i].destroy()
+    }
     this.deckSprites = []
     let deckXPos = 25
-    while (!this.deck.empty()) {
-      const card = new Card(this, deckXPos += 10, 300, this.deck.deal())
+    for (let i = 0; i < this.deck.count(); i++) {
+      const card = new Card(this, deckXPos += 10, 300, this.deck.get(i))
       this.deckSprites.push(card)
     }
     this.handSprites = []
     let handXPos = 250
-    for (var i = 0; i < this.hand.length; i++) {
+    for (let i = 0; i < this.hand.length; i++) {
       const card = new Card(this, handXPos += 50, 500, this.hand[i])
     }
   }

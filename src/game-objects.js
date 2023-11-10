@@ -6,6 +6,9 @@ class GameObject {
     this.sprite.setScale(scale)
   }
 
+  destroy() {
+    this.sprite.destroy()
+  }
 }
 export class Card extends GameObject {
   static getAsset(suit, value) {
