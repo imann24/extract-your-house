@@ -41,6 +41,10 @@ io.on('connection', (socket) => {
 
   socket.broadcast.emit('update', games[0].getState())
 
+  socket.on('play-card', card => {
+    console.log('played card ', card)
+  })
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log(`Player ${player.id} disconnected`)

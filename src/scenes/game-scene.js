@@ -14,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
       this.updateHandler(state)
     })
     this.deckSprites = []
+    this.handSprites = []
   }
 
   preload () {
@@ -40,9 +41,13 @@ export default class GameScene extends Phaser.Scene {
     this.turn = state.turn
   }
 
+  playerTurn () {
+    return this.turn === this.id
+  }
+
   updateTurnText () {
     if (this.turnText) this.turnText.destroy()
-    this.turnText = this.add.text(50, 100, this.turn === this.id ? `TURN: ${this.turn} (yours)` : `TURN: ${this.turn}`)
+    this.turnText = this.add.text(50, 100, this.playerTurn() ? `TURN: ${this.turn} (yours)` : `TURN: ${this.turn}`)
   }
 
   create () {
@@ -56,16 +61,31 @@ export default class GameScene extends Phaser.Scene {
     for (let i = 0; i < this.deckSprites.length; i++) {
       this.deckSprites[i].destroy()
     }
+    // for (let i = 0; i < this.handSprites.length; i++) {
+    //   this.handSprites[i].destroy()
+    // }
     this.deckSprites = []
+    // this.handSprites = []
     let deckXPos = 75
     for (let i = 0; i < this.deck.count(); i++) {
       const card = new Card(this, deckXPos += 10, 300, this.deck.get(i))
       this.deckSprites.push(card)
     }
-    this.handSprites = []
     let handXPos = 250
     for (let i = 0; i < this.hand.length; i++) {
+      if (this.handSprites.length > i && this.handSprites[i].card === this.hand[i]) {
+        continue
+      }
+
       const card = new Card(this, handXPos += 50, 500, this.hand[i])
+      card.onClick(() => {
+        if (this.playerTurn()) {
+          console.log('clicked', this.hand[i])
+          this.socket.emit('play-card', this.hand[i])
+          card.destroy()
+        }
+      })
+      this.handSprites.push(card)
     }
   }
 }
