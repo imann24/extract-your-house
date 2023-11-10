@@ -1,3 +1,5 @@
+import ArrayUtil from './array-util.js'
+
 export default class Deck {
   static fromExisting(deck) {
     const newDeck = new Deck()
@@ -14,8 +16,12 @@ export default class Deck {
     return `card${card.suit}${card.value}`
   }
 
+  static allSuits () {
+    return ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+  }
+
   static allCards () {
-    const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+    const suits = Deck.allSuits()
     const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
     const cards = []
     for (const suit of suits) {
@@ -31,10 +37,7 @@ export default class Deck {
   }
 
   shuffle () {
-    for (let i = this.cards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]]
-    }
+    ArrayUtil.shuffle(this.cards)
   }
 
   deal () {

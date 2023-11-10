@@ -1,11 +1,13 @@
 import { PLAYER_MAX, CARDS_TO_DEAL } from './game-rules.js'
 import Deck from './deck.js'
+import ArrayUtil from './array-util.js'
 
 class Player {
-  constructor (id) {
+  constructor (id, suit) {
     this.id = id
     this.hand = []
-    this.collectionPile = []  
+    this.collectionPile = []
+    this.suit = suit
   }
 }
 export default class GameState {
@@ -14,6 +16,7 @@ export default class GameState {
     this.deck = new Deck()
     this.deck.shuffle()
     this.players = []
+    this.unclaimedSuits = ArrayUtil.shuffle(Deck.allSuits())
   }
 
   canAddPlayer () {
@@ -22,7 +25,7 @@ export default class GameState {
 
   addPlayer () { 
     // use player count as the id for a new player
-    const player = new Player(this.players.length)
+    const player = new Player(this.players.length, this.unclaimedSuits.pop())
     for (let i = 0; i < CARDS_TO_DEAL; i++) {
       player.hand.push(this.deck.deal())
     }
@@ -36,6 +39,7 @@ export default class GameState {
       deck: this.deck,
       hand: this.players[playerId].hand,
       collectionPile: this.players[playerId].collectionPile,
+      suit: this.players[playerId].suit,
     }
   }
 

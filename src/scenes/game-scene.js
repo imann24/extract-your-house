@@ -28,6 +28,7 @@ export default class GameScene extends Phaser.Scene {
     this.deck = Deck.fromExisting(state.deck)
     this.hand = state.hand
     this.collectionPile = state.collectionPile
+    this.suit = state.suit
     console.log('state', state)
   }
 
@@ -37,12 +38,16 @@ export default class GameScene extends Phaser.Scene {
     this.hand = state.players[this.id].collectionPile
   }
 
+  create () {
+    this.suitText = this.add.text(50, 50, `SUIT: ${this.suit}`)
+  }
+
   update () {
     for (let i = 0; i < this.deckSprites.length; i++) {
       this.deckSprites[i].destroy()
     }
     this.deckSprites = []
-    let deckXPos = 25
+    let deckXPos = 75
     for (let i = 0; i < this.deck.count(); i++) {
       const card = new Card(this, deckXPos += 10, 300, this.deck.get(i))
       this.deckSprites.push(card)
