@@ -29,6 +29,7 @@ export default class GameScene extends Phaser.Scene {
     this.hand = state.hand
     this.collectionPile = state.collectionPile
     this.suit = state.suit
+    this.turn = state.turn
     console.log('state', state)
   }
 
@@ -36,13 +37,22 @@ export default class GameScene extends Phaser.Scene {
     this.deck = Deck.fromExisting(state.deck)
     this.hand = state.players[this.id].hand
     this.hand = state.players[this.id].collectionPile
+    this.turn = state.turn
+  }
+
+  updateTurnText () {
+    if (this.turnText) this.turnText.destroy()
+    this.turnText = this.add.text(50, 100, this.turn === this.id ? `TURN: ${this.turn} (yours)` : `TURN: ${this.turn}`)
   }
 
   create () {
     this.suitText = this.add.text(50, 50, `SUIT: ${this.suit}`)
+    this.playerText = this.add.text(50, 75, `PLAYER: ${this.id}`)
+    this.updateTurnText()
   }
 
   update () {
+    this.updateTurnText()
     for (let i = 0; i < this.deckSprites.length; i++) {
       this.deckSprites[i].destroy()
     }

@@ -17,6 +17,7 @@ export default class GameState {
     this.deck.shuffle()
     this.players = []
     this.unclaimedSuits = ArrayUtil.shuffle(Deck.allSuits())
+    this.turn = 0
   }
 
   canAddPlayer () {
@@ -40,6 +41,7 @@ export default class GameState {
       hand: this.players[playerId].hand,
       collectionPile: this.players[playerId].collectionPile,
       suit: this.players[playerId].suit,
+      turn: this.turn,
     }
   }
 
@@ -47,6 +49,7 @@ export default class GameState {
     return {
       deck: this.deck,
       players: this.players,
+      turn: this.turn,
     }
   }
 }
