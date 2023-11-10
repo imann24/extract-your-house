@@ -1,12 +1,15 @@
-const express = require('express')
-const app = express()
-const http = require('http').Server(app)
-const io = require('socket.io')(http)
-const webpack = require('webpack');
-const webpackDevMiddleware = require('webpack-dev-middleware')
-const webpackHotMiddleware = require('webpack-hot-middleware')
-const webpackConfig = require('./webpack.config')
+import express from 'express'
+import http from 'http'
+import { Server as SocketIOServer } from 'socket.io'
+import webpack from 'webpack'
+import webpackDevMiddleware from 'webpack-dev-middleware'
+import webpackHotMiddleware from 'webpack-hot-middleware'
+import webpackConfig from './webpack.config.js'
+import GameState from './src/game-state.js'
 
+const app = express()
+const server = http.Server(app)
+const io = new SocketIOServer(server)
 const PORT = process.env.PORT || 3002
 
 app.use(webpackDevMiddleware(webpack(webpackConfig), {
@@ -22,16 +25,22 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html')
 });
 
+const games = []
+// start with just a single game state with:
+games[0] = new GameState(0)
+
 // Handle WebSocket connections
 io.on('connection', (socket) => {
-  console.log('A user connected')
+  const player = games[0].addPlayer()
+  console.log(`Player ${player.id} connected`)
+  socket.emit('player', player)
 
   // Handle disconnection
   socket.on('disconnect', () => {
-    console.log('User disconnected')
+    console.log(`Player ${player.id} disconnected`)
   });
 });
 
-http.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`)
 });

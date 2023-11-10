@@ -1,4 +1,10 @@
 export default class Deck {
+  static fromExisting(deck) {
+    const newDeck = new Deck()
+    newDeck.cards = deck.cards
+    return newDeck
+  }
+
   constructor() {
     this.cards = []
     this.createDeck()
@@ -20,29 +26,29 @@ export default class Deck {
     return cards
   }
 
-  createDeck() {
+  createDeck () {
     this.cards = Deck.allCards()
   }
 
-  shuffle() {
+  shuffle () {
     for (let i = this.cards.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]]
     }
   }
 
-  deal() {
+  deal () {
     if (this.cards.length === 0) {
       throw new Error('The deck is empty. Cannot deal any more cards.')
     }
     return this.cards.pop()
   }
 
-  empty() {
+  empty () {
     return !this.cards.length
   }
 
-  reset() {
+  reset () {
     this.cards = []
     this.createDeck()
   }

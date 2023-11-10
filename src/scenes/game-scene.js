@@ -1,22 +1,29 @@
 import Phaser from 'phaser'
-import Deck from '../deck'
-import { Card } from '../game-objects'
+import Deck from '../deck.js'
+import { Card } from '../game-objects.js'
 
 export default class GameScene extends Phaser.Scene {
-  constructor() {
+  constructor(socket) {
     super({ key: 'game' })
+    this.socket = socket
+    this.socket.on('player', state => {
+      this.startHandler(state)
+    })
   }
 
-  preload() {
+  preload () {
     for (const card of Deck.allCards()) {
       const cardName = Deck.getCardName(card)
       this.load.image(cardName, `assets/${cardName}.png`)
     }
   }
 
-  create() {
-    this.deck = new Deck()
-    this.deck.shuffle()
+  startHandler (state) {
+    this.deck = Deck.fromExisting(state.deck)
+  }
+
+  create () {
+    console.log(this.deck)
     this.deckSprites = []
     let xPos = 25
     while (!this.deck.empty()) {

@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "extract-your-house",
   "packageManager": "yarn@3.6.3",
   "scripts": {
