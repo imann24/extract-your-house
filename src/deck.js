@@ -12,6 +12,13 @@ export default class Deck {
     this.createDeck()
   }
 
+  static sameCard(card1, card2) {
+    if (!card1 || !card2) {
+      return false
+    }
+    return card1.suit === card2.suit && card1.value === card2.value
+  }
+
   static getCardName(card) {
     return `card${card.suit}${card.value}`
   }

@@ -31,7 +31,7 @@ export default class GameScene extends Phaser.Scene {
     this.collectionPile = state.collectionPile
     this.suit = state.suit
     this.turn = state.turn
-    console.log('state', state)
+    console.log('START state', state)
   }
 
   updateHandler (state) {
@@ -39,6 +39,7 @@ export default class GameScene extends Phaser.Scene {
     this.hand = state.players[this.id].hand
     this.hand = state.players[this.id].collectionPile
     this.turn = state.turn
+    console.log('UPDATE state', state)
   }
 
   playerTurn () {
@@ -62,7 +63,7 @@ export default class GameScene extends Phaser.Scene {
       this.deckSprites[i].destroy()
     }
     // for (let i = 0; i < this.handSprites.length; i++) {
-    //   this.handSprites[i].destroy()
+      // this.handSprites[i].destroy()
     // }
     this.deckSprites = []
     // this.handSprites = []
@@ -73,10 +74,11 @@ export default class GameScene extends Phaser.Scene {
     }
     let handXPos = 250
     for (let i = 0; i < this.hand.length; i++) {
-      if (this.handSprites.length > i && this.handSprites[i].card === this.hand[i]) {
+      if (this.handSprites.length > i && Deck.sameCard(this.handSprites[i].card, this.hand[i])) {
+        console.log('SKIPPING', this.hand[i])
         continue
       }
-
+      // console.log(this.hand[i])
       const card = new Card(this, handXPos += 50, 500, this.hand[i])
       card.onClick(() => {
         if (this.playerTurn()) {

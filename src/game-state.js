@@ -52,4 +52,16 @@ export default class GameState {
       turn: this.turn,
     }
   }
+
+  playCard (playerId, card) {
+    this.playedCard = card
+    this.players[playerId].hand = this.players[playerId].hand.filter(c => !Deck.sameCard(c, card))
+    console.log('cards left in hand', this.players[playerId].hand)
+  }
+
+  nextTurn () {
+    this.turn ++
+    this.turn %= this.players.length
+    console.log('turn', this.turn)
+  }
 }
