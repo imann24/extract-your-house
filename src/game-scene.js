@@ -3,8 +3,9 @@ import Deck from './deck.js'
 import { Card, Player } from './game-objects.js'
 
 export default class GameScene extends Phaser.Scene {
-  constructor(socket) {
+  constructor(socket, sizeConfig) {
     super({ key: 'game' })
+    this.screen = sizeConfig
     this.socket = socket
     this.socket.emit('request-join', {
       playerId: sessionStorage.getItem('player-id'),
@@ -96,9 +97,9 @@ export default class GameScene extends Phaser.Scene {
 
   create () {
     this.deckText = this.add.text(50, 150, 'PLAYED:')
-    this.deckText = this.add.text(50, 350, 'DECK:')
-    this.handText = this.add.text(50, 550, 'HAND:')
-    this.collectionText = this.add.text(50, 750, 'COLLECTION PILE:')
+    this.deckText = this.add.text(50, 300, 'DECK:')
+    this.handText = this.add.text(50, 450, 'HAND:')
+    this.collectionText = this.add.text(50, 600, 'COLLECTION PILE:')
     this.updateTurnText()
   }
 
@@ -151,12 +152,12 @@ export default class GameScene extends Phaser.Scene {
     }
     let deckXPos = 75
     for (let i = 0; i < this.deck.count(); i++) {
-      const card = new Card(this, deckXPos += 10, 425, this.deck.get(i))
+      const card = new Card(this, deckXPos += 10, 375, this.deck.get(i))
       this.deckSprites.push(card)
     }
     let handXPos = 35
     for (let i = 0; i < this.hand.length; i++) {
-      const card = new Card(this, handXPos += 50, 625, this.hand[i])
+      const card = new Card(this, handXPos += 50, 525, this.hand[i])
       card.onClick(() => {
         if (this.playerTurn()) {
           this.socket.emit('play-card', this.hand[i])
@@ -166,7 +167,7 @@ export default class GameScene extends Phaser.Scene {
     }
     let collectionPileXPos = 35
     for (let i = 0; i < this.collectionPile.length; i++) {
-      const card = new Card(this, collectionPileXPos += 50, 825, this.collectionPile[i])
+      const card = new Card(this, collectionPileXPos += 50, 675, this.collectionPile[i])
       this.collectionPileSprites.push(card)
     }
 
