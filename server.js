@@ -29,6 +29,11 @@ const games = []
 // start with just a single game instance:
 games[0] = new GameState(0)
 
+app.get('/reset', (_, res) => {
+  games[0] = new GameState(0)
+  res.send('game state reset')
+})
+
 // Handle WebSocket connections
 io.on('connection', (socket) => {
   if (!games[0].canAddPlayer()) {
