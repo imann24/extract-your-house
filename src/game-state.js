@@ -18,6 +18,7 @@ export default class GameState {
     this.players = []
     this.unclaimedSuits = ArrayUtil.shuffle(Deck.allSuits())
     this.turn = 0
+    this.tick = 0
   }
 
   canAddPlayer () {
@@ -50,6 +51,8 @@ export default class GameState {
       deck: this.deck,
       players: this.players,
       turn: this.turn,
+      // count up every time we update state
+      tick: this.tick,
     }
   }
 
@@ -62,6 +65,7 @@ export default class GameState {
   nextTurn () {
     this.turn ++
     this.turn %= this.players.length
+    this.tick ++
     console.log('turn', this.turn)
   }
 }

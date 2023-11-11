@@ -15,6 +15,7 @@ export default class GameScene extends Phaser.Scene {
     })
     this.deckSprites = []
     this.handSprites = []
+    this.lastDrawnTick = -1
   }
 
   preload () {
@@ -39,6 +40,7 @@ export default class GameScene extends Phaser.Scene {
     this.hand = state.players[this.id].hand
     this.collectionPile = state.players[this.id].collectionPile
     this.turn = state.turn
+    this.tick = state.tick
     console.log('UPDATE state', state)
   }
 
@@ -58,16 +60,21 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update () {
+    // prevent unecessary updates:
+    if (this.lastDrawnTick === this.tick) {
+      return
+    }
+
     this.updateTurnText()
     // lazy hack: recreate the entire deck every frame in case there were any updates
     for (let i = 0; i < this.deckSprites.length; i++) {
       this.deckSprites[i].destroy()
     }
-    // for (let i = 0; i < this.handSprites.length; i++) {
-    //   this.handSprites[i].destroy()
-    // }
+    for (let i = 0; i < this.handSprites.length; i++) {
+      this.handSprites[i].destroy()
+    }
     this.deckSprites = []
-    // this.handSprites = []
+    this.handSprites = []
     let deckXPos = 75
     for (let i = 0; i < this.deck.count(); i++) {
       const card = new Card(this, deckXPos += 10, 300, this.deck.get(i))
@@ -75,17 +82,15 @@ export default class GameScene extends Phaser.Scene {
     }
     let handXPos = 250
     for (let i = 0; i < this.hand.length; i++) {
-      if (this.handSprites.length > i && Deck.sameCard(this.handSprites[i].card, this.hand[i])) {
-        continue
-      }
       const card = new Card(this, handXPos += 50, 500, this.hand[i])
       card.onClick(() => {
         if (this.playerTurn()) {
           this.socket.emit('play-card', this.hand[i])
-          card.destroy()
         }
       })
       this.handSprites.push(card)
     }
+
+    this.lastDrawnTick = this.tick
   }
 }
