@@ -126,15 +126,87 @@ export default class GameState {
     return leadingPlayer
   }
 
+  powerPlayers(triggeringPlayerId, playerIds, suit, value) {
+
+    for (let i = 0; i < value; i++) {
+      let playerId = playerIds[i % playerIds.length]
+      if (suit == 'Hearts') {
+        if (!this.deck.empty()) {
+          this.getPlayer(playerId).hand.push(this.deck.deal())
+        }
+      }
+      else if (suit == 'Diamonds') {
+        if (this.getPlayer(playerId).collectionPile.length > 0) {
+          this.getPlayer(triggeringPlayerId).collectionPile.push(this.getPlayer(playerId).collectionPile.pop()) // todo decide on shuffling of things like collection decks...
+        }
+      }
+      else if (suit == 'Clubs') {
+        let hand = this.getPlayer(playerId).hand
+        if (hand.length > 0) {
+          ArrayUtil.shuffle(this.getPlayer(playerId).hand) // right now this is done multiple times per player often just fyi
+          this.deck.cards.unshift(this.getPlayer(playerId).hand.pop())
+
+          console.log('club removing from hand size ', this.getPlayer(playerId).hand.length)
+        }
+      }
+    }
+  }
+
+  assignPowersToPlayers () {
+
+    let poweringPlayer
+    let lowestValueCard
+    let spadePlayer
+    let lowestSpadePower = 99
+
+    for (let i = 0; i < this.players.length; i++) {
+      let card = this.cardsInOrder[i]
+      let player = this.playersInOrder[i]
+      const currentScore = this.scoreCard(card, player)
+
+      if (card.suit == 'Spades') {
+        if (currentScore < lowestSpadePower) {
+          lowestSpadePower = currentScore
+          spadePlayer = player
+          console.log('lowest value spade')
+        }   
+      }       
+      if (!lowestValueCard || currentScore < this.scoreCard(lowestValueCard, poweringPlayer)) {
+        poweringPlayer = player
+        lowestValueCard = card
+        console.log('lowest value card ', lowestValueCard.value)
+      }
+    }
+
+    let targetedPlayers = []
+
+    if (lowestValueCard.suit == 'Hearts') {
+      targetedPlayers.push(poweringPlayer)
+    }
+    else if (lowestValueCard.suit == 'Diamonds' || lowestValueCard.suit == 'Clubs') {
+      for (let i = 0; i < this.players.length; i++) {
+        if (this.players[i].id != poweringPlayer && this.players[i].id != spadePlayer) {
+          targetedPlayers.push(this.players[i].id)
+        }
+      }
+    }
+
+    if (targetedPlayers.length > 0) {
+      // value is + 2 when we display it to players and then maxes out at 10
+      this.powerPlayers(poweringPlayer, targetedPlayers, lowestValueCard.suit, Math.min(this.scoreCard(lowestValueCard, poweringPlayer) + 2, 10))
+    }
+  }
+
   roundResults () {
+    this.assignPowersToPlayers()
     return {
-      winner: this.assignRoundWinner(),
-      // TODO: factor in powers here too, not just cards played
+      winner: this.assignRoundWinner(),      
       cards: Object.values(this.playedCards)
     }
   }
 
   nextRound (roundWinner) {
+
     this.getPlayer(roundWinner).collectionPile.push(...Object.values(this.playedCards))
     this.playedCards = {}
     this.cardsInOrder = []
