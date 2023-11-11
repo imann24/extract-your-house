@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import socketio from 'socket.io-client'
-import GameScene from './scenes/game-scene.js'
+import GameScene from './game-scene.js'
 
 const gameConfig = {
   width: 1920,

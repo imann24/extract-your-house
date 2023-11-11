@@ -19,6 +19,7 @@ export default class GameState {
     this.unclaimedSuits = ArrayUtil.shuffle(Deck.allSuits())
     this.turn = 0
     this.tick = 0
+    this.playedCards = {}
   }
 
   canAddPlayer () {
@@ -53,12 +54,12 @@ export default class GameState {
       turn: this.turn,
       // count up every time we update state
       tick: this.tick,
-      playedCard: this.playedCard,
+      playedCards: this.playedCards,
     }
   }
 
   playCard (playerId, card) {
-    this.playedCard = card
+    this.playedCards[playerId] = card
     this.players[playerId].hand = this.players[playerId].hand.filter(c => !Deck.sameCard(c, card))
     console.log('cards left in hand', this.players[playerId].hand)
   }
