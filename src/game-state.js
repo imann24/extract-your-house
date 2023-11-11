@@ -97,7 +97,7 @@ export default class GameState {
     let leadingScore = 0
     for (const [player, card] of Object.entries(this.playedCards)) {
       const currentScore = this.scoreCard(card)
-      if (currentScore > leadingScore) {
+      if (currentScore > leadingScore || !leadingPlayer) {
         leadingPlayer = player
         leadingScore = currentScore
       }
@@ -114,7 +114,7 @@ export default class GameState {
   }
 
   nextRound (roundWinner) {
-    this.players[parseInt(roundWinner)].collectionPile.push(...Object.values(this.playedCards))
+    this.getPlayer(roundWinner).collectionPile.push(...Object.values(this.playedCards))
     this.playedCards = {}
     for (let i = 0; i < this.players.length; i++) {
       this.players[i].hand.push(this.deck.deal())
