@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import Deck from './deck.js'
-import { Card } from './game-objects.js'
+import { Card, Player } from './game-objects.js'
 
 export default class GameScene extends Phaser.Scene {
   constructor(socket) {
@@ -24,6 +24,7 @@ export default class GameScene extends Phaser.Scene {
       console.log("GAME OVER")
       this.gameOverHandler(state)
     })
+    this.playerSprites = []
     this.deckSprites = []
     this.handSprites = []
     this.playedSprites = []
@@ -39,6 +40,10 @@ export default class GameScene extends Phaser.Scene {
       const cardName = Deck.getCardName(card)
       this.load.image(cardName, `assets/${cardName}.png`)
     }
+    for (const suit of Deck.allSuits()) {
+      this.load.image(`playerIcon${suit}`, `assets/playerIcon${suit}.png`)
+    }
+    this.load.image('upArrow', 'assets/upArrow.png')
   }
 
   // TODO: refactor playerHandler into updateHandler
@@ -53,6 +58,7 @@ export default class GameScene extends Phaser.Scene {
     this.suit = state.suit
     this.turn = state.turn
     this.playedCards = state.playedCards || {}
+    this.players = state.players
     this.stateSet = true
     console.log('START state', state)
   }
@@ -64,6 +70,7 @@ export default class GameScene extends Phaser.Scene {
     this.turn = state.turn
     this.tick = state.tick
     this.playedCards = state.playedCards
+    this.players = state.players
     this.stateSet = true
     console.log('UPDATE state', state)
   }
@@ -102,6 +109,11 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.updateTurnText()
+    // playerSprites is the player icons
+    for (let i = 0; i < this.playerSprites.length; i++) {
+      this.playerSprites[i].destroy()
+    }
+    // playedSprites is the icons for cards that have been played
     for (let i = 0; i < this.playedSprites.length; i++) {
       this.playedSprites[i].destroy()
       this.playedTexts[i].destroy()
@@ -117,11 +129,18 @@ export default class GameScene extends Phaser.Scene {
       this.collectionPileSprites[i].destroy()
     }
     
+    this.playerSprites = []
     this.playedSprites = []
     this.playedTexts = []
     this.deckSprites = []
     this.handSprites = []
 
+    let playerXPos = 500
+    for (const player of this.players) {
+      const playerSprite = new Player(this, playerXPos, 100, player, this.turn)
+      playerXPos += 200
+      this.playerSprites.push(playerSprite)
+    }
     let playedXPos = 50
     for (const [player, card] of Object.entries(this.playedCards)) {
       const cardSprite = new Card(this, playedXPos + 37.5, 225, card)

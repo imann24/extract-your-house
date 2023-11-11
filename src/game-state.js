@@ -53,6 +53,8 @@ export default class GameState {
       suit: this.getPlayer(playerId).suit,
       turn: this.turn,
       playedCards: this.playedCards,
+      // This isn't techincally the individual player state but whatever:
+      players: this.players
     }
   }
 
