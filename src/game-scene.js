@@ -13,6 +13,8 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on('game-full', () => alert('lobby is full'))
     this.socket.on('player', state => {
       this.playerHandler(state)
+      this.suitText = this.add.text(50, 50, `SUIT: ${this.suit}`)
+      this.playerText = this.add.text(50, 75, `PLAYER: ${this.id}`)  
     })
     this.socket.on('update', state => {
       this.updateHandler(state)
@@ -70,8 +72,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create () {
-    this.suitText = this.add.text(50, 50, `SUIT: ${this.suit}`)
-    this.playerText = this.add.text(50, 75, `PLAYER: ${this.id}`)
     this.deckText = this.add.text(50, 150, 'PLAYED:')
     this.deckText = this.add.text(50, 350, 'DECK:')
     this.handText = this.add.text(50, 550, 'HAND:')
