@@ -105,5 +105,8 @@ export default class GameState {
   nextRound (roundWinner) {
     this.players[parseInt(roundWinner)].collectionPile.push(...Object.values(this.playedCards))
     this.playedCards = {}
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].hand.push(this.deck.deal())
+    }
   }
 }
