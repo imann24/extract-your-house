@@ -23,6 +23,7 @@ export default class GameScene extends Phaser.Scene {
     this.playedTexts = []
     this.collectionPileSprites = []
     this.lastDrawnTick = -1
+    this.stateSet = false
   }
 
   preload () {
@@ -44,6 +45,7 @@ export default class GameScene extends Phaser.Scene {
     this.suit = state.suit
     this.turn = state.turn
     this.playedCards = state.playedCards || {}
+    this.stateSet = true
     console.log('START state', state)
   }
 
@@ -54,6 +56,7 @@ export default class GameScene extends Phaser.Scene {
     this.turn = state.turn
     this.tick = state.tick
     this.playedCards = state.playedCards
+    this.stateSet = true
     console.log('UPDATE state', state)
   }
 
@@ -77,8 +80,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update () {
-    // prevent unecessary updates:
-    if (this.lastDrawnTick === this.tick) {
+    // prevent early + unecessary updates:
+    if (!this.stateSet || this.lastDrawnTick === this.tick) {
       return
     }
 
