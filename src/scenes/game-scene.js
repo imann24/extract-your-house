@@ -59,11 +59,12 @@ export default class GameScene extends Phaser.Scene {
 
   update () {
     this.updateTurnText()
+    // lazy hack: recreate the entire deck every frame in case there were any updates
     for (let i = 0; i < this.deckSprites.length; i++) {
       this.deckSprites[i].destroy()
     }
     // for (let i = 0; i < this.handSprites.length; i++) {
-      // this.handSprites[i].destroy()
+    //   this.handSprites[i].destroy()
     // }
     this.deckSprites = []
     // this.handSprites = []
@@ -75,10 +76,8 @@ export default class GameScene extends Phaser.Scene {
     let handXPos = 250
     for (let i = 0; i < this.hand.length; i++) {
       if (this.handSprites.length > i && Deck.sameCard(this.handSprites[i].card, this.hand[i])) {
-        // console.log('SKIPPING', this.hand[i])
         continue
       }
-      console.log('RECREATING', this.hand[i])
       const card = new Card(this, handXPos += 50, 500, this.hand[i])
       card.onClick(() => {
         if (this.playerTurn()) {

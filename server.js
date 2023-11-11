@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
     console.log('played card', card)
     games[0].playCard(player.id, card)
     games[0].nextTurn()
-    socket.broadcast.emit('update', games[0].getState())
+    io.emit('update', games[0].getState())
   })
 
   // Handle disconnection
