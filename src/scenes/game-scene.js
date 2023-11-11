@@ -37,7 +37,7 @@ export default class GameScene extends Phaser.Scene {
   updateHandler (state) {
     this.deck = Deck.fromExisting(state.deck)
     this.hand = state.players[this.id].hand
-    this.hand = state.players[this.id].collectionPile
+    this.collectionPile = state.players[this.id].collectionPile
     this.turn = state.turn
     console.log('UPDATE state', state)
   }
@@ -75,14 +75,13 @@ export default class GameScene extends Phaser.Scene {
     let handXPos = 250
     for (let i = 0; i < this.hand.length; i++) {
       if (this.handSprites.length > i && Deck.sameCard(this.handSprites[i].card, this.hand[i])) {
-        console.log('SKIPPING', this.hand[i])
+        // console.log('SKIPPING', this.hand[i])
         continue
       }
-      // console.log(this.hand[i])
+      console.log('RECREATING', this.hand[i])
       const card = new Card(this, handXPos += 50, 500, this.hand[i])
       card.onClick(() => {
         if (this.playerTurn()) {
-          console.log('clicked', this.hand[i])
           this.socket.emit('play-card', this.hand[i])
           card.destroy()
         }

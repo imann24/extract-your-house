@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
   socket.broadcast.emit('update', games[0].getState())
 
   socket.on('play-card', card => {
-    console.log('played card ', card)
+    console.log('played card', card)
     games[0].playCard(player.id, card)
     games[0].nextTurn()
     socket.broadcast.emit('update', games[0].getState())
