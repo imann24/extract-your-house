@@ -37,6 +37,7 @@ export default class GameScene extends Phaser.Scene {
 
   // TODO: refactor playerHandler into updateHandler
   playerHandler (state) {
+    // todo dod
     this.id = state.id
     // used for session stickiness:
     sessionStorage.setItem('player-id', this.id)
