@@ -53,6 +53,7 @@ export default class GameState {
       turn: this.turn,
       // count up every time we update state
       tick: this.tick,
+      playedCard: this.playedCard,
     }
   }
 
