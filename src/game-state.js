@@ -152,10 +152,22 @@ export default class GameState {
   }
 
   gameOver () {
-    const playersWithCardsInHand = this.players.filter(p => p.hand.length > 0)
-    return this.deck.empty() && playersWithCardsInHand.length <= 1
+    let cardActuallyInHand = false
+    const playersWithCardsInHand = this.players.filter(p => {
+      if (p.hand.length > 0) {
+        cardActuallyInHand = true
+        return true
+      }
+      // also count if the player has played a card this turn:
+      return !!this.playedCards[p.id]
+    })
+    return this.deck.empty() && (playersWithCardsInHand.length <= 1 || !cardActuallyInHand)
   }
 
+  handleGameOver () {
+    this.tick ++
+  }
+  
   scoreCollectionPile (playerId) {
     const player = this.getPlayer(playerId)
     let points = 0
