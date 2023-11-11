@@ -6,6 +6,10 @@ export default class GameScene extends Phaser.Scene {
   constructor(socket) {
     super({ key: 'game' })
     this.socket = socket
+    this.socket.emit('request-join', {
+      playerId: sessionStorage.getItem('player-id'),
+      sessionId: sessionStorage.getItem('session-id'),
+    })
     this.socket.on('game-full', () => alert('lobby is full'))
     this.socket.on('player', state => {
       this.playerHandler(state)
@@ -28,14 +32,18 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  // TODO: refactor playerHandler into updateHandler
   playerHandler (state) {
     this.id = state.id
+    // used for session stickiness:
+    sessionStorage.setItem('player-id', this.id)
+    sessionStorage.setItem('session-id', state.sessionId)
     this.deck = Deck.fromExisting(state.deck)
     this.hand = state.hand
     this.collectionPile = state.collectionPile
     this.suit = state.suit
     this.turn = state.turn
-    this.playedCards = {}
+    this.playedCards = state.playedCards || {}
     console.log('START state', state)
   }
 
@@ -64,7 +72,7 @@ export default class GameScene extends Phaser.Scene {
     this.deckText = this.add.text(50, 150, 'PLAYED:')
     this.deckText = this.add.text(50, 350, 'DECK:')
     this.handText = this.add.text(50, 550, 'HAND:')
-    this.collectionPile = this.add.text(50, 750, 'COLLECTION PILE:')
+    this.collectionText = this.add.text(50, 750, 'COLLECTION PILE:')
     this.updateTurnText()
   }
 
@@ -86,7 +94,7 @@ export default class GameScene extends Phaser.Scene {
     for (let i = 0; i < this.handSprites.length; i++) {
       this.handSprites[i].destroy()
     }
-    for (let i = 0; i< this.collectionPileSprites.length; i++) {
+    for (let i = 0; i < this.collectionPileSprites.length; i++) {
       this.collectionPileSprites[i].destroy()
     }
     

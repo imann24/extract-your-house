@@ -36,15 +36,23 @@ app.get('/reset', (_, res) => {
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
-  if (!games[0].canAddPlayer()) {
-    socket.emit('game-full')
-  }
-  const player = games[0].addPlayer()
-
-  console.log(`Player ${player.id} connected`)
-  socket.emit('player', player)
-
-  socket.broadcast.emit('update', games[0].getState())
+  let player = { id: 'unknown' }
+  // playerInfo may be empty depending on if this is a rejoin or not:
+  socket.on('request-join', playerInfo => {
+    if (games[0].validRejoin(playerInfo)) {
+      player = games[0].getPlayerState(parseInt(playerInfo.playerId))
+      socket.emit('player', player)
+    } else {
+      if (!games[0].canAddPlayer()) {
+        socket.emit('game-full')
+      } else {
+        player = games[0].addPlayer()
+        socket.emit('player', player)
+        socket.broadcast.emit('update', games[0].getState())
+      }
+    }
+    console.log(`Player ${player.id} connected`)
+  })
 
   socket.on('play-card', card => {
     console.log('played card', card)

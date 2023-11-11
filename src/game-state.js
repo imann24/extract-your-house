@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { PLAYER_MAX, CARDS_TO_DEAL } from './game-rules.js'
 import Deck from './deck.js'
 import ArrayUtil from './array-util.js'
@@ -13,6 +15,7 @@ class Player {
 export default class GameState {
   constructor (id) {
     this.id = id
+    this.sessionId = uuidv4().toString()
     this.deck = new Deck()
     this.deck.shuffle()
     this.players = []
@@ -36,14 +39,17 @@ export default class GameState {
     return this.getPlayerState(player.id)
   }
 
+  // TODO: refactor getPlayerState into getState
   getPlayerState (playerId) {
     return {
       id: playerId,
+      sessionId: this.sessionId,
       deck: this.deck,
-      hand: this.players[playerId].hand,
-      collectionPile: this.players[playerId].collectionPile,
-      suit: this.players[playerId].suit,
+      hand: this.getPlayer(playerId).hand,
+      collectionPile: this.getPlayer(playerId).collectionPile,
+      suit: this.getPlayer(playerId).suit,
       turn: this.turn,
+      playedCards: this.playedCards,
     }
   }
 
@@ -58,10 +64,15 @@ export default class GameState {
     }
   }
 
+  getPlayer (playerId) {
+    // playerId may be a string in some cases:
+    return this.players[parseInt(playerId)]
+  }
+
   playCard (playerId, card) {
     this.playedCards[playerId] = card
-    this.players[playerId].hand = this.players[playerId].hand.filter(c => !Deck.sameCard(c, card))
-    console.log('cards left in hand', this.players[playerId].hand)
+    this.getPlayer(playerId).hand = this.getPlayer(playerId).hand.filter(c => !Deck.sameCard(c, card))
+    console.log('cards left in hand', this.getPlayer(playerId).hand)
   }
 
   nextTurn () {
@@ -108,5 +119,13 @@ export default class GameState {
     for (let i = 0; i < this.players.length; i++) {
       this.players[i].hand.push(this.deck.deal())
     }
+  }
+
+  validRejoin (playerInfo) {
+    console.log(this.sessionId, playerInfo)
+    if (!playerInfo.playerId || !playerInfo.sessionId) {
+      return false
+    }
+    return !!this.players[parseInt(playerInfo.playerId)] && this.sessionId === playerInfo.sessionId
   }
 }
