@@ -17,6 +17,7 @@ export default class GameScene extends Phaser.Scene {
     this.handSprites = []
     this.playedSprites = []
     this.playedTexts = []
+    this.collectionPileSprites = []
     this.lastDrawnTick = -1
   }
 
@@ -63,6 +64,7 @@ export default class GameScene extends Phaser.Scene {
     this.deckText = this.add.text(50, 150, 'PLAYED:')
     this.deckText = this.add.text(50, 350, 'DECK:')
     this.handText = this.add.text(50, 550, 'HAND:')
+    this.collectionPile = this.add.text(50, 750, 'COLLECTION PILE:')
     this.updateTurnText()
   }
 
@@ -83,6 +85,9 @@ export default class GameScene extends Phaser.Scene {
     }
     for (let i = 0; i < this.handSprites.length; i++) {
       this.handSprites[i].destroy()
+    }
+    for (let i = 0; i< this.collectionPileSprites.length; i++) {
+      this.collectionPileSprites[i].destroy()
     }
     
     this.playedSprites = []
@@ -112,6 +117,11 @@ export default class GameScene extends Phaser.Scene {
         }
       })
       this.handSprites.push(card)
+    }
+    let collectionPileXPos = 35
+    for (let i = 0; i < this.collectionPile.length; i++) {
+      const card = new Card(this, collectionPileXPos += 50, 825, this.collectionPile[i])
+      this.collectionPileSprites.push(card)
     }
 
     this.lastDrawnTick = this.tick
