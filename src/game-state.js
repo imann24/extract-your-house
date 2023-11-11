@@ -21,8 +21,11 @@ export default class GameState {
     this.players = []
     this.unclaimedSuits = ArrayUtil.shuffle(Deck.allSuits())
     this.turn = 0
+    this.startingPlayer = 0 // for the current trick
     this.tick = 0
-    this.playedCards = {}
+    this.playedCards = {} // paired with player
+    this.cardsInOrder = [] // array of played cards in order
+    this.playersInOrder = []  // array of players matched with theirs cards in order
   }
 
   canAddPlayer () {
@@ -71,6 +74,8 @@ export default class GameState {
 
   playCard (playerId, card) {
     this.playedCards[playerId] = card
+    this.cardsInOrder.push(card)
+    this.playersInOrder.push(playerId)
     this.getPlayer(playerId).hand = this.getPlayer(playerId).hand.filter(c => !Deck.sameCard(c, card))
     console.log('cards left in hand', this.getPlayer(playerId).hand)
   }
@@ -86,20 +91,36 @@ export default class GameState {
     return Object.entries(this.playedCards).length === this.players.length
   }
 
-  scoreCard (card) {
-    // TODO: this needs to factor in leading suit and other factors:
-    return Deck.allValues().indexOf(card.value)
+  getplayerTurnOrder (playerId) {
+    if (playerId >= this.startingPlayer) {      
+      return (playerId - this.startingPlayer)  
+    }
+    else {
+      return this.players.length - (this.startingPlayer - playerId)
+    }
+  }
+
+  scoreCard (card, playerId) {
+    let ownSuitBonus = this.getPlayerState(playerId).suit == card.suit ? 1 : 0 
+    return Deck.allValues().indexOf(card.value) + ownSuitBonus
   }
 
   assignRoundWinner () {
-    // TODO: need to add logic for which player started trick
     let leadingPlayer
-    let leadingScore = 0
-    for (const [player, card] of Object.entries(this.playedCards)) {
-      const currentScore = this.scoreCard(card)
-      if (currentScore > leadingScore || !leadingPlayer) {
-        leadingPlayer = player
+    let leadingScore = -1
+
+    // so this should ensure that ties go to earlier players in round
+    for (let i = 0; i < this.players.length; i++) {
+      console.log('card ', this.cardsInOrder[i])
+
+      const currentScore = this.scoreCard(this.cardsInOrder[i], this.playersInOrder[i])
+      console.log('player ', this.playersInOrder[i], "score", currentScore)
+
+      if (currentScore > leadingScore) {
+        leadingPlayer = this.playersInOrder[i]
         leadingScore = currentScore
+        console.log('leadingplayer ', leadingPlayer, "leadingScore", leadingScore)
+
       }
     }
     return leadingPlayer
@@ -116,9 +137,14 @@ export default class GameState {
   nextRound (roundWinner) {
     this.getPlayer(roundWinner).collectionPile.push(...Object.values(this.playedCards))
     this.playedCards = {}
+    this.cardsInOrder = []
+    this.playersInOrder = []
     for (let i = 0; i < this.players.length; i++) {
       this.players[i].hand.push(this.deck.deal())
     }
+    this.startingPlayer = this.getPlayer(roundWinner).id // id is order number for now so 
+    this.turn = this.startingPlayer
+    this.tick ++
   }
 
   validRejoin (playerInfo) {

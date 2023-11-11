@@ -57,12 +57,14 @@ io.on('connection', (socket) => {
   socket.on('play-card', card => {
     console.log('played card', card)
     games[0].playCard(player.id, card)
-    games[0].nextTurn()
     if (games[0].roundOver()) {
       const results = games[0].roundResults()
       console.log('results', results)
       io.emit('round-over', results)
       games[0].nextRound(results.winner)
+    }
+    else {
+          games[0].nextTurn()
     }
     io.emit('update', games[0].getState())
   })
