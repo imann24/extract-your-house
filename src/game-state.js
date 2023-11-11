@@ -84,7 +84,6 @@ export default class GameState {
     this.turn ++
     this.turn %= this.players.length
     this.tick ++
-    console.log('turn', this.turn)
   }
 
   roundOver () {
@@ -140,6 +139,11 @@ export default class GameState {
     this.cardsInOrder = []
     this.playersInOrder = []
     for (let i = 0; i < this.players.length; i++) {
+      // stop dealing if deck is empty
+      if (this.deck.empty()) {
+        break
+      }
+
       this.players[i].hand.push(this.deck.deal())
     }
     this.startingPlayer = this.getPlayer(roundWinner).id // id is order number for now so 
@@ -147,8 +151,49 @@ export default class GameState {
     this.tick ++
   }
 
+  gameOver () {
+    let cardActuallyInHand = false
+    const playersWithCardsInHand = this.players.filter(p => {
+      if (p.hand.length > 0) {
+        cardActuallyInHand = true
+        return true
+      }
+      // also count if the player has played a card this turn:
+      return !!this.playedCards[p.id]
+    })
+    return this.deck.empty() && (playersWithCardsInHand.length <= 1 || !cardActuallyInHand)
+  }
+
+  handleGameOver () {
+    this.tick ++
+  }
+  
+  scoreCollectionPile (playerId) {
+    const player = this.getPlayer(playerId)
+    let points = 0
+    for (const card of player.collectionPile) {
+      if (player.suit === card.suit) {
+        points ++
+      }
+    }
+    return points
+  }
+
+  getWinner () {
+    let leadingPlayer
+    let leadingScore = -1
+    for (const player of this.players) {
+      const playerScore = this.scoreCollectionPile(player.id)
+      // TODO: handle tie logic
+      if (playerScore > leadingScore) {
+        leadingPlayer = player
+        leadingScore = playerScore
+      }
+    }
+    return leadingPlayer
+  }
+
   validRejoin (playerInfo) {
-    console.log(this.sessionId, playerInfo)
     if (!playerInfo.playerId || !playerInfo.sessionId) {
       return false
     }

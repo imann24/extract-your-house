@@ -1,5 +1,8 @@
 import ArrayUtil from './array-util.js'
 
+// locally set this to true to test with a small 12 card deck:
+const MINI_DECK_FOR_DEBUGGING = false
+
 export default class Deck {
   static fromExisting(deck) {
     const newDeck = new Deck()
@@ -28,6 +31,9 @@ export default class Deck {
   }
 
   static allValues () {
+    if (MINI_DECK_FOR_DEBUGGING) {
+      return ['2', '3', '4']
+    }
     return ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
   }
 
