@@ -13,11 +13,16 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on('game-full', () => alert('lobby is full'))
     this.socket.on('player', state => {
       this.playerHandler(state)
+      // initialize these in a callback so we know these values are set already
       this.suitText = this.add.text(50, 50, `SUIT: ${this.suit}`)
       this.playerText = this.add.text(50, 75, `PLAYER: ${this.id}`)  
     })
     this.socket.on('update', state => {
       this.updateHandler(state)
+    })
+    this.socket.on('game-over', state => {
+      console.log("GAME OVER")
+      this.gameOverHandler(state)
     })
     this.deckSprites = []
     this.handSprites = []
@@ -26,6 +31,7 @@ export default class GameScene extends Phaser.Scene {
     this.collectionPileSprites = []
     this.lastDrawnTick = -1
     this.stateSet = false
+    this.gameOver = false
   }
 
   preload () {
@@ -62,6 +68,16 @@ export default class GameScene extends Phaser.Scene {
     console.log('UPDATE state', state)
   }
 
+  gameOverHandler (state) {
+    console.log(state)
+    if (state.winner.id === this.id) {
+      alert('You are the winner!')
+    } else {
+      alert(`Defeat. Player ${state.winner.id} is the winner.`)
+    }
+    this.gameOver = true
+  }
+
   playerTurn () {
     return this.turn === this.id
   }
@@ -81,7 +97,7 @@ export default class GameScene extends Phaser.Scene {
 
   update () {
     // prevent early + unecessary updates:
-    if (!this.stateSet || this.lastDrawnTick === this.tick) {
+    if (!this.stateSet || this.lastDrawnTick === this.tick || this.gameOver) {
       return
     }
 
