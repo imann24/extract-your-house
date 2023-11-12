@@ -21,6 +21,7 @@ export default class GameState {
     this.players = []
     this.unclaimedSuits = ArrayUtil.shuffle(Deck.allSuits())
     this.turn = 0
+    this.numInactivePlayers = 0
     this.startingPlayer = 0 // for the current trick
     this.tick = 0
     this.playedCards = {} // paired with player
@@ -85,11 +86,18 @@ export default class GameState {
   nextTurn () {
     this.turn ++
     this.turn %= this.players.length
+    this.ensureActivePlayer()
     this.tick ++
   }
 
+  ensureActivePlayer() {
+    if (this.getPlayer(this.turn).hand.length == 0) {
+      this.nextTurn()
+    }
+  }
+
   roundOver () {
-    return Object.entries(this.playedCards).length === this.players.length
+    return Object.entries(this.playedCards).length === this.players.length - this.numInactivePlayers
   }
 
   getplayerTurnOrder (playerId) {
@@ -111,7 +119,7 @@ export default class GameState {
     let leadingScore = -1
 
     // so this should ensure that ties go to earlier players in round
-    for (let i = 0; i < this.players.length; i++) {
+    for (let i = 0; i < this.cardsInOrder.length; i++) {
       console.log('card ', this.cardsInOrder[i])
 
       const currentScore = this.scoreCard(this.cardsInOrder[i], this.playersInOrder[i])
@@ -134,12 +142,15 @@ export default class GameState {
       if (suit == 'Hearts') {
         if (!this.deck.empty()) {
           this.getPlayer(playerId).hand.push(this.deck.deal())
+          console.log('adding from heart new size', this.getPlayer(playerId).hand.length)
         }
       }
       else if (suit == 'Diamonds') {
         if (this.getPlayer(playerId).collectionPile.length > 0) {
+          // might be good that its always taking from the top....
           this.getPlayer(triggeringPlayerId).collectionPile.push(this.getPlayer(playerId).collectionPile.pop()) // todo decide on shuffling of things like collection decks...
-        }
+          console.log('Diamonds new collection size for attacked player', this.getPlayer(playerId).collectionPile.length)
+        } 
       }
       else if (suit == 'Clubs') {
         let hand = this.getPlayer(playerId).hand
@@ -153,24 +164,22 @@ export default class GameState {
     }
   }
 
-  assignPowersToPlayers () {
+  assignPowersToPlayers (roundWinner) {
 
     let poweringPlayer
     let lowestValueCard
-    let spadePlayer
+    let spadePlayers = []
     let lowestSpadePower = 99
 
-    for (let i = 0; i < this.players.length; i++) {
+    for (let i = 0; i < this.cardsInOrder.length; i++) {
       let card = this.cardsInOrder[i]
       let player = this.playersInOrder[i]
       const currentScore = this.scoreCard(card, player)
 
       if (card.suit == 'Spades') {
-        if (currentScore < lowestSpadePower) {
           lowestSpadePower = currentScore
-          spadePlayer = player
-          console.log('lowest value spade')
-        }   
+          spadePlayers.push(player)
+          console.log('spade player: ', player)
       }       
       if (!lowestValueCard || currentScore < this.scoreCard(lowestValueCard, poweringPlayer)) {
         poweringPlayer = player
@@ -180,26 +189,60 @@ export default class GameState {
     }
 
     let targetedPlayers = []
+    let totalTurnsofBlockingPlayers = 0
+
+    // value is + 2 when we display it to players and then maxes out at 10
+    let attackPower = Math.min(this.scoreCard(lowestValueCard, poweringPlayer) + 2) + spadePlayers.length
+    console.log('raw attack power: ', attackPower)
 
     if (lowestValueCard.suit == 'Hearts') {
       targetedPlayers.push(poweringPlayer)
     }
+
+    // we do this to ensure the players are attacked in order starting from the winner of the trick
     else if (lowestValueCard.suit == 'Diamonds' || lowestValueCard.suit == 'Clubs') {
-      for (let i = 0; i < this.players.length; i++) {
-        if (this.players[i].id != poweringPlayer && this.players[i].id != spadePlayer) {
-          targetedPlayers.push(this.players[i].id)
+
+
+      let potentialTargetPlayers = []
+      for (let i = 0; i < this.playersInOrder.length; i++) {
+        if (this.playersInOrder[i] != poweringPlayer) {
+          potentialTargetPlayers.push(this.playersInOrder[i])
+          console.log('potential player index added ', i)
         }
       }
+
+      for (let i = 0; i < attackPower; i++) {
+        let startingIndex = roundWinner
+        if (roundWinner > poweringPlayer) {
+          startingIndex--
+        }
+        let curPlayerIndex = (startingIndex + i) % potentialTargetPlayers.length
+        let curPlayer = potentialTargetPlayers[curPlayerIndex]
+        if (curPlayer != poweringPlayer) {
+          if (!spadePlayers.includes(curPlayer)) {
+            if (!targetedPlayers.includes(curPlayer)) { // only add as target once
+              targetedPlayers.push(curPlayer)
+              console.log('targeting player: ', curPlayer)
+            } 
+          }
+          else {
+            totalTurnsofBlockingPlayers++
+            console.log('totalTurnsofBlockingPlayers: ', totalTurnsofBlockingPlayers)
+          }
+        }
+      }
+      // attackPower is the value of the card (above) - but any attacks to blocking players is wasted, 
+      // except for +1 collateral total value for each blocking player
+      attackPower = attackPower - totalTurnsofBlockingPlayers
+      console.log('actual attack power: ', attackPower)
     }
 
     if (targetedPlayers.length > 0) {
-      // value is + 2 when we display it to players and then maxes out at 10
-      this.powerPlayers(poweringPlayer, targetedPlayers, lowestValueCard.suit, Math.min(this.scoreCard(lowestValueCard, poweringPlayer) + 2, 10))
+      this.powerPlayers(poweringPlayer, targetedPlayers, lowestValueCard.suit, attackPower, 10)
     }
   }
 
   roundResults () {
-    this.assignPowersToPlayers()
     return {
       winner: this.assignRoundWinner(),      
       cards: Object.values(this.playedCards)
@@ -207,21 +250,26 @@ export default class GameState {
   }
 
   nextRound (roundWinner) {
+    this.assignPowersToPlayers(roundWinner)
 
     this.getPlayer(roundWinner).collectionPile.push(...Object.values(this.playedCards))
     this.playedCards = {}
     this.cardsInOrder = []
     this.playersInOrder = []
-    for (let i = 0; i < this.players.length; i++) {
-      // stop dealing if deck is empty
-      if (this.deck.empty()) {
-        break
-      }
+    this.numInactivePlayers = 0
 
-      this.players[i].hand.push(this.deck.deal())
+    for (let i = 0; i < this.players.length; i++) {
+      if (!this.deck.empty()) {
+        this.players[i].hand.push(this.deck.deal())
+      }
+      else if (this.players[i].hand.length == 0) {
+        this.numInactivePlayers++
+        console.log('inactive players: ', this.numInactivePlayers)
+      }
     }
     this.startingPlayer = this.getPlayer(roundWinner).id // id is order number for now so 
     this.turn = this.startingPlayer
+    this.ensureActivePlayer()
     this.tick ++
   }
 
