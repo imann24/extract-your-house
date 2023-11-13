@@ -74,8 +74,12 @@ io.on('connection', (socket) => {
   socket.on('play-card', card => {
     // reset the timeout because we've received a move:
     createTimeoutHandler()
-    console.log('played card', card)
-    games[0].playCard(player.id, card)
+    const playSuccessful = games[0].playCard(player.id, card)
+    if (!playSuccessful) {
+      // skip next steps in game logic if playCard failed
+      return
+    }
+
     if (games[0].roundOver()) {
       const results = games[0].roundResults()
       console.log('results', results)

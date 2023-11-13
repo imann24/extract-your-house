@@ -75,12 +75,21 @@ export default class GameState {
     return this.players[parseInt(playerId)]
   }
 
+  // returns true is card was able to be played
   playCard (playerId, card) {
+    const player = this.getPlayer(playerId)
+    if (!player) {
+      console.error(`invalid player ${playerId} with card ${JSON.stringify(card)}. Skipping move`)
+      return false
+    }
+
+    console.log(`Player ${playerId} played card`, card)
     this.playedCards[playerId] = card
     this.cardsInOrder.push(card)
     this.playersInOrder.push(playerId)
     this.getPlayer(playerId).hand = this.getPlayer(playerId).hand.filter(c => !Deck.sameCard(c, card))
     console.log('cards left in hand', this.getPlayer(playerId).hand)
+    return true
   }
 
   nextTurn () {
