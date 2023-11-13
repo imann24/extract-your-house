@@ -5,7 +5,9 @@ import webpack from 'webpack'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import webpackHotMiddleware from 'webpack-hot-middleware'
 import webpackConfig from './webpack.config.js'
+
 import GameState from './src/game-state.js'
+import { GAME_TIMEOUT_MS } from './src/game-rules.js'
 
 const app = express()
 const server = http.Server(app)
@@ -28,14 +30,29 @@ app.get('/', (req, res) => {
 const games = []
 // start with just a single game instance:
 games[0] = new GameState(0)
+let gameTimeoutHandler
+
+function resetGame () {
+  games[0] = new GameState(0)
+  console.log('game reset')
+}
+
+function createTimeoutHandler () {
+  // remove the previous
+  if (gameTimeoutHandler) {
+    clearTimeout(gameTimeoutHandler)
+  }
+  gameTimeoutHandler = setTimeout(resetGame, GAME_TIMEOUT_MS)
+}
 
 app.get('/reset', (_, res) => {
-  games[0] = new GameState(0)
+  resetGame()
   res.send('game state reset')
 })
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
+  createTimeoutHandler()
   let player = { id: 'unknown' }
   // playerInfo may be empty depending on if this is a rejoin or not:
   socket.on('request-join', playerInfo => {
@@ -55,6 +72,8 @@ io.on('connection', (socket) => {
   })
 
   socket.on('play-card', card => {
+    // reset the timeout because we've received a move:
+    createTimeoutHandler()
     console.log('played card', card)
     games[0].playCard(player.id, card)
     if (games[0].roundOver()) {
