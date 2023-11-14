@@ -7,7 +7,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware'
 import webpackConfig from './webpack.config.js'
 
 import GameState from './src/game-state.js'
-import { GAME_TIMEOUT_MS } from './src/game-rules.js'
+import { GAME_TIMEOUT_MS, PAUSE_AFTER_ROUND_MS } from './src/game-rules.js'
 
 const app = express()
 const server = http.Server(app)
@@ -81,9 +81,12 @@ io.on('connection', (socket) => {
     }
 
     if (games[0].roundOver()) {
-      const results = games[0].roundResults()
-      console.log('results', results)
-      games[0].nextRound(results.winner)
+      setTimeout(() => {
+        const results = games[0].roundResults()
+        console.log('results', results)
+        games[0].nextRound(results.winner)
+        io.emit('update', games[0].getState())
+      }, PAUSE_AFTER_ROUND_MS)
     }
     else {
       games[0].nextTurn()

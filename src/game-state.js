@@ -89,6 +89,7 @@ export default class GameState {
     this.playersInOrder.push(playerId)
     this.getPlayer(playerId).hand = this.getPlayer(playerId).hand.filter(c => !Deck.sameCard(c, card))
     console.log('cards left in hand', this.getPlayer(playerId).hand)
+    this.tick ++
     return true
   }
 
