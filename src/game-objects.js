@@ -16,12 +16,15 @@ class GameObject {
   }
 }
 export class Card extends GameObject {
-  static getAsset (suit, value) {
-    return `card${suit}${value}`
+  static getAsset (suit, value, faceUp) {
+    if (faceUp) {
+      return `card${suit}${value}`
+    }
+    return 'cardBack'
   }
 
-  constructor (scene, x, y, card) {
-    super(scene, Card.getAsset(card.suit, card.value), x, y, 0.5)
+  constructor (scene, x, y, card, faceUp = true) {
+    super(scene, Card.getAsset(card.suit, card.value, faceUp), x, y, 0.5)
     this.card = card
   }
 }

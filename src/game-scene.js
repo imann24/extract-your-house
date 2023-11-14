@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
+
 import Deck from './deck.js'
 import { Card, Player } from './game-objects.js'
+import { DECK_FACE_UP } from './game-rules.js'
 
 export default class GameScene extends Phaser.Scene {
   constructor(socket, sizeConfig) {
@@ -45,6 +47,7 @@ export default class GameScene extends Phaser.Scene {
       this.load.image(`playerIcon${suit}`, `assets/playerIcon${suit}.png`)
     }
     this.load.image('upArrow', 'assets/upArrow.png')
+    this.load.image('cardBack', 'assets/cardBack.png')
   }
 
   // TODO: refactor playerHandler into updateHandler
@@ -152,7 +155,7 @@ export default class GameScene extends Phaser.Scene {
     }
     let deckXPos = 75
     for (let i = 0; i < this.deck.count(); i++) {
-      const card = new Card(this, deckXPos += 10, 375, this.deck.get(i))
+      const card = new Card(this, deckXPos += 10, 375, this.deck.get(i), DECK_FACE_UP)
       this.deckSprites.push(card)
     }
     let handXPos = 35
