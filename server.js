@@ -6,7 +6,7 @@ import webpackDevMiddleware from 'webpack-dev-middleware'
 import webpackHotMiddleware from 'webpack-hot-middleware'
 import webpackConfig from './webpack.config.js'
 
-import GameState from './src/game-state.js'
+import GamePool from './src/game-pool.js'
 import { GAME_TIMEOUT_MS, PAUSE_AFTER_ROUND_MS } from './src/game-rules.js'
 
 const app = express()
@@ -22,21 +22,20 @@ app.use(webpackHotMiddleware(webpack(webpackConfig)))
 // Serve static files from the "public" directory
 app.use(express.static('public/dist'))
 
+const games = new GamePool()
+let gameTimeoutHandler
+
 // Send the Phaser client when a user visits the root URL
-app.get('/', (req, res) => {
+app.get('/', (_, res) => {
   res.sendFile(__dirname + '/public/index.html')
 });
 
-const games = []
-// start with just a single game instance:
-games[0] = new GameState(0)
-let gameTimeoutHandler
-
-function resetGame () {
-  games[0] = new GameState(0)
-  console.log('game reset')
+function resetAllGames () {
+  games.reset()
+  console.log('all games reset')
 }
 
+// TODO: fix this to work with multiple games
 function createTimeoutHandler () {
   // remove the previous
   if (gameTimeoutHandler) {
@@ -46,60 +45,61 @@ function createTimeoutHandler () {
 }
 
 app.get('/reset', (_, res) => {
-  resetGame()
-  res.send('game state reset')
+  resetAllGames()
+  res.send('all games reset')
 })
 
 // Handle WebSocket connections
-io.on('connection', (socket) => {
-  createTimeoutHandler()
+io.on('connection', socket => {
+  // createTimeoutHandler()
   let player = { id: 'unknown' }
   // playerInfo may be empty depending on if this is a rejoin or not:
   socket.on('request-join', playerInfo => {
-    if (games[0].validRejoin(playerInfo)) {
-      player = games[0].getPlayerState(parseInt(playerInfo.playerId))
+    console.log(games)
+    // TODO: assign a game to the player
+    const game = games.getGameToRejoin(playerInfo) || games.newPlayerJoin()
+    socket.join(game.getSocketRoom())
+    if (game.validRejoin(playerInfo)) {
+      player = game.getPlayerState(parseInt(playerInfo.playerId))
       socket.emit('player', player)
     } else {
-      if (!games[0].canAddPlayer()) {
-        socket.emit('game-full')
-      } else {
-        player = games[0].addPlayer()
-        socket.emit('player', player)
-        socket.broadcast.emit('update', games[0].getState())
+      player = game.addPlayer()
+      socket.emit('player', player)
+      socket.broadcast.emit('update', game.getState())
+    }
+
+    socket.on('play-card', card => {
+      // reset the timeout because we've received a move:
+      // createTimeoutHandler()
+      const playSuccessful = game.playCard(player.id, card)
+      if (!playSuccessful) {
+        // skip next steps in game logic if playCard failed
+        return
       }
-    }
+  
+      if (game.roundOver()) {
+        setTimeout(() => {
+          const results = game.roundResults()
+          console.log('results', results)
+          game.nextRound(results.winner)
+          io.to(game.getSocketRoom()).emit('update', game.getState())
+        }, PAUSE_AFTER_ROUND_MS)
+      }
+      else {
+        game.nextTurn()
+      }
+      io.to(game.getSocketRoom()).emit('update', game.getState())
+      if (game.gameOver()) {
+        game.handleGameOver()
+        const winner = game.getWinner()
+        console.log('game over')
+        io.emit('game-over', {
+          winner,
+        })
+      }
+    })
+
     console.log(`Player ${player.id} connected`)
-  })
-
-  socket.on('play-card', card => {
-    // reset the timeout because we've received a move:
-    createTimeoutHandler()
-    const playSuccessful = games[0].playCard(player.id, card)
-    if (!playSuccessful) {
-      // skip next steps in game logic if playCard failed
-      return
-    }
-
-    if (games[0].roundOver()) {
-      setTimeout(() => {
-        const results = games[0].roundResults()
-        console.log('results', results)
-        games[0].nextRound(results.winner)
-        io.emit('update', games[0].getState())
-      }, PAUSE_AFTER_ROUND_MS)
-    }
-    else {
-      games[0].nextTurn()
-    }
-    io.emit('update', games[0].getState())
-    if (games[0].gameOver()) {
-      games[0].handleGameOver()
-      const winner = games[0].getWinner()
-      console.log('game over')
-      io.emit('game-over', {
-        winner,
-      })
-    }
   })
 
   // Handle disconnection

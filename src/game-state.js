@@ -331,4 +331,8 @@ export default class GameState {
     }
     return !!this.players[parseInt(playerInfo.playerId)] && this.sessionId === playerInfo.sessionId
   }
+
+  getSocketRoom () {
+    return `game${this.id}`
+  }
 }
