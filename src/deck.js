@@ -1,7 +1,7 @@
 import ArrayUtil from './array-util.js'
 
 // locally set this to true to test with a small 12 card deck:
-const MINI_DECK_FOR_DEBUGGING = true
+const MINI_DECK_FOR_DEBUGGING = false
 
 export default class Deck {
   static fromExisting(deck) {
