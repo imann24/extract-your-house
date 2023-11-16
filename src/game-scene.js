@@ -17,6 +17,7 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on('player', state => {
       this.playerHandler(state)
       // initialize these in a callback so we know these values are set already
+      this.suitText = this.add.text(50, 25, `GAME: ${this.gameId}`)
       this.suitText = this.add.text(50, 50, `SUIT: ${this.suit}`)
       this.playerText = this.add.text(50, 75, `PLAYER: ${this.id}`)  
     })
@@ -53,6 +54,7 @@ export default class GameScene extends Phaser.Scene {
   // TODO: refactor playerHandler into updateHandler
   playerHandler (state) {
     this.id = state.id
+    this.gameId = state.gameId
     // used for session stickiness:
     sessionStorage.setItem('player-id', this.id)
     sessionStorage.setItem('session-id', state.sessionId)
@@ -108,7 +110,7 @@ export default class GameScene extends Phaser.Scene {
 
   update () {
     // prevent early + unecessary updates:
-    if (!this.stateSet || this.lastDrawnTick === this.tick || this.gameOver) {
+    if (!this.stateSet || this.lastDrawnTick === this.tick) {
       return
     }
 

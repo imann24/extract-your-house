@@ -47,6 +47,7 @@ export default class GameState {
   getPlayerState (playerId) {
     return {
       id: playerId,
+      gameId: this.id,
       sessionId: this.sessionId,
       deck: this.deck,
       hand: this.getPlayer(playerId).hand,
@@ -330,5 +331,9 @@ export default class GameState {
       return false
     }
     return !!this.players[parseInt(playerInfo.playerId)] && this.sessionId === playerInfo.sessionId
+  }
+
+  getSocketRoom () {
+    return `game${this.id}`
   }
 }
