@@ -55,7 +55,7 @@ io.on('connection', socket => {
   let player = { id: 'unknown' }
   // playerInfo may be empty depending on if this is a rejoin or not:
   socket.on('request-join', playerInfo => {
-    console.log(games)
+    console.log('game count:', games.games.length)
     // TODO: assign a game to the player
     const game = games.getGameToRejoin(playerInfo) || games.newPlayerJoin()
     socket.join(game.getSocketRoom())
@@ -83,20 +83,19 @@ io.on('connection', socket => {
           console.log('results', results)
           game.nextRound(results.winner)
           io.to(game.getSocketRoom()).emit('update', game.getState())
+          if (game.gameOver()) {
+            game.handleGameOver()
+            const winner = game.getWinner()
+            console.log('game over')
+            io.to(game.getSocketRoom()).emit('game-over', {
+              winner,
+            })
+          }
         }, PAUSE_AFTER_ROUND_MS)
-      }
-      else {
+      } else {
         game.nextTurn()
       }
       io.to(game.getSocketRoom()).emit('update', game.getState())
-      if (game.gameOver()) {
-        game.handleGameOver()
-        const winner = game.getWinner()
-        console.log('game over')
-        io.emit('game-over', {
-          winner,
-        })
-      }
     })
 
     console.log(`Player ${player.id} connected`)

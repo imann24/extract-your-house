@@ -47,6 +47,7 @@ export default class GameState {
   getPlayerState (playerId) {
     return {
       id: playerId,
+      gameId: this.id,
       sessionId: this.sessionId,
       deck: this.deck,
       hand: this.getPlayer(playerId).hand,

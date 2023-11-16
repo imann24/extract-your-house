@@ -25,7 +25,7 @@ export default class GamePool {
       }
     }
     // existing games full:
-    console.log('NEW GAME CREATED')
+    console.log('new game created, id:', i)
     const newGame = new GameState(i)
     this.games[i] = newGame
     return newGame
